@@ -99,32 +99,49 @@ Every blocks needs to point at the configuration.nix for proper tangling, becaus
     # Enable the X11 windowing system.
     services.xserver.enable = true;
 
+    programs.sway = {
+      enable = true;
+      wrapperFeatures.gtk = true; # So GTK apps work properly
+    };
+
+    # Allow running sway without root privileges
+    security.pam.services.swaylock = {};
+
+    # Boot directly into sway
+    # services.greetd = {
+    #   enable = true;
+    #   settings.default_session.command = "sway";
+    # };
+
+    # ###########
+    # ## GNOME ##
+    ###########
     # Enable the GNOME Desktop Environment.
-    services.xserver.displayManager.gdm.enable = true;
-    services.xserver.desktopManager.gnome.enable = true;
-    
-    # Unwanted packages that come with Gnome need to be excluded
-    environment.gnome.excludePackages = (
-      with pkgs;
-      [
-        atomix # puzzle game
-        cheese # webcam tool
-        epiphany # web browser
-        evince # document viewer
-        geary
-        # email reader
-        gedit # text editor
-        gnome-characters
-        gnome-music
-        gnome-photos
-        gnome-terminal
-        gnome-tour
-        hitori # sudoku game
-        iagno # go game
-        tali # poker game
-        totem # video player
-      ]
-    );
+    # services.xserver.displayManager.gdm.enable = true;
+    # services.xserver.desktopManager.gnome.enable = true;
+
+    # # Unwanted packages that come with Gnome need to be excluded
+    # environment.gnome.excludePackages = (
+    #   with pkgs;
+    #   [
+    #     atomix # puzzle game
+    #     cheese # webcam tool
+    #     epiphany # web browser
+    #     evince # document viewer
+    #     geary
+    #     # email reader
+    #     gedit # text editor
+    #     gnome-characters
+    #     gnome-music
+    #     gnome-photos
+    #     gnome-terminal
+    #     gnome-tour
+    #     hitori # sudoku game
+    #     iagno # go game
+    #     tali # poker game
+    #     totem # video player
+    #   ]
+    # );
 
 #+END_SRC
 
@@ -180,7 +197,7 @@ Every blocks needs to point at the configuration.nix for proper tangling, becaus
         alsa.enable = true;
         alsa.support32Bit = true;
         pulse.enable = true;
-        # If you want to use JACK applications, uncomment this
+        # If using JACK applications, uncomment this:
         jack.enable = true;
 
         # use the example session manager (no others are packaged yet so this is enabled by default,
@@ -212,36 +229,47 @@ Every blocks needs to point at the configuration.nix for proper tangling, becaus
 ** Install packages
 List packages installed in system profile. To search available packages, run: $ nix search wget
 #+BEGIN_SRC nix :tangle configuration.nix
-          # $ nix search wget
-          environment.systemPackages = with pkgs; [
-            ## System basics ##
-            firefox
-            wget
-            curl
-            unzip
-            openssh
-            ## Software development-related ##
-            git
-            ghostty
-            vim
-            neovim
-            emacs
-            python3
-            docker
-            postgresql
-            nixfmt-rfc-style # official nix formatter
-            pgformatter # format postgres SQL
-            lazygit # easy git interface for terminals
-            yazi
-            fd # file finding
-            ripgrep
-            luarocks # lua module support (neovim dependecy)
-            ## Audio production ##
-            reaper
-            ## Entertainment ##
-            spotify
-            #steam
-          ];
+    # $ nix search wget
+    environment.systemPackages = with pkgs; [
+      ## System basics ##
+      firefox
+      wget
+      curl
+      unzip
+      waybar
+      wofi               # application launcher
+      alacritty          # terminal emulator
+      foot
+      grim slurp         # screenshot tools
+      wl-clipboard       # clipboard tools
+      mako               # notifications
+      brightnessctl      # brightness control
+      swaybg             # sway backgrounds
+      pipewire           # audio control (or pipewire-pulse if using PipeWire)
+      pulseaudio
+      openssh
+      #ghostty
+      ## Software development-related ##
+      git
+      vim
+      neovim
+      emacs
+      python3
+      docker
+      postgresql
+      nixfmt-rfc-style # official nix formatter
+      pgformatter # format postgres SQL
+      lazygit # easy git interface for terminals
+      yazi
+      fd # file finding
+      ripgrep
+      luarocks # lua module support (neovim dependecy)
+      ## Audio production ##
+      reaper
+      ## Entertainment ##
+      spotify
+      #steam
+    ];
 #+END_SRC
 
 ** Enable packages

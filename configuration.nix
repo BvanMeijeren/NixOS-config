@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 
-{
+{ # this curly brace matche one in the final block of this document, DO NOT REMOVE
   imports = [
     # Include the results of the hardware scan (auto generated but can be enriched)
     ./hardware-configuration.nix
@@ -68,32 +68,49 @@ services.openssh.enable = true;
 # Enable the X11 windowing system.
 services.xserver.enable = true;
 
-# Enable the GNOME Desktop Environment.
-services.xserver.displayManager.gdm.enable = true;
-services.xserver.desktopManager.gnome.enable = true;
+programs.sway = {
+  enable = true;
+  wrapperFeatures.gtk = true; # So GTK apps work properly
+};
 
-# Unwanted packages that come with Gnome need to be excluded
-environment.gnome.excludePackages = (
-  with pkgs;
-  [
-    atomix # puzzle game
-    cheese # webcam tool
-    epiphany # web browser
-    evince # document viewer
-    geary
-    # email reader
-    gedit # text editor
-    gnome-characters
-    gnome-music
-    gnome-photos
-    gnome-terminal
-    gnome-tour
-    hitori # sudoku game
-    iagno # go game
-    tali # poker game
-    totem # video player
-  ]
-);
+# Allow running sway without root privileges
+security.pam.services.swaylock = {};
+
+# Boot directly into sway
+# services.greetd = {
+#   enable = true;
+#   settings.default_session.command = "sway";
+# };
+
+# ###########
+# ## GNOME ##
+###########
+# Enable the GNOME Desktop Environment.
+# services.xserver.displayManager.gdm.enable = true;
+# services.xserver.desktopManager.gnome.enable = true;
+
+# # Unwanted packages that come with Gnome need to be excluded
+# environment.gnome.excludePackages = (
+#   with pkgs;
+#   [
+#     atomix # puzzle game
+#     cheese # webcam tool
+#     epiphany # web browser
+#     evince # document viewer
+#     geary
+#     # email reader
+#     gedit # text editor
+#     gnome-characters
+#     gnome-music
+#     gnome-photos
+#     gnome-terminal
+#     gnome-tour
+#     hitori # sudoku game
+#     iagno # go game
+#     tali # poker game
+#     totem # video player
+#   ]
+# );
 
 ### THEME ###
 # Font
@@ -132,7 +149,7 @@ services.pipewire = {
   alsa.enable = true;
   alsa.support32Bit = true;
   pulse.enable = true;
-  # If you want to use JACK applications, uncomment this
+  # If using JACK applications, uncomment this:
   jack.enable = true;
 
   # use the example session manager (no others are packaged yet so this is enabled by default,
@@ -163,10 +180,21 @@ environment.systemPackages = with pkgs; [
   wget
   curl
   unzip
+  waybar
+  wofi               # application launcher
+  alacritty          # terminal emulator
+  foot
+  grim slurp         # screenshot tools
+  wl-clipboard       # clipboard tools
+  mako               # notifications
+  brightnessctl      # brightness control
+  swaybg             # sway backgrounds
+  pipewire           # audio control (or pipewire-pulse if using PipeWire)
+  pulseaudio
   openssh
+  #ghostty
   ## Software development-related ##
   git
-  ghostty
   vim
   neovim
   emacs

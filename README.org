@@ -2,14 +2,24 @@
 #+AUTHOR: Bastiaan
 #+PROPERTY: header-args:nix :tangle configuration.nix
 
-* System Configuration
+* Intro
 This file contains my NixOS system configuration in a literate format.
 The focus of this NixOS config is light coding, audio production and a bit of gaming.
 
+** To update the system
+1. Makes changes in this file (not the one in etc/nixos/)
+2. Tangle this file using org-bable-tangle() function
+3. Run the update_nix_config.sh in the same directory to update the real nixos config
+
 Every blocks needs to point at the configuration.nix for proper tangling, because of the {} and the start/end of the file.
 
-* Packages
+** Managing previous generations (builds) of NixOS
+*** List all generations
+nix-env --list-generations
+*** To delete all previous generations
+sudo nix-collect-garbage -d
 
+* Imports
 #+BEGIN_SRC nix :tangle configuration.nix
 { config, pkgs, ... }:
 #+END_SRC
@@ -22,6 +32,7 @@ Every blocks needs to point at the configuration.nix for proper tangling, becaus
   ];
 #+END_SRC
 
+* Bootloader
 #+BEGIN_SRC nix :tangle configuration.nix
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -92,11 +103,12 @@ Every blocks needs to point at the configuration.nix for proper tangling, becaus
   services.openssh.enable = true;
 #+END_SRC
 
-* Desktop Environment
+* Desktop environment
 ** DE Choice
-#+BEGIN_SRC nix :tangle configuration.nix
-    ### DESKTOP ENVIRONMENT ###
-    # Enable the X11 windowing system.
+To enable or disable a DE, comment/uncomment the BEGIN_SRC and END_SRC lines of the block.
+*** Sway
+# #+BEGIN_SRC nix :tangle configuration.nix
+    # Enable the X11 windowing system. (Sway needs it for example)
     services.xserver.enable = true;
 
     programs.sway = {
@@ -108,43 +120,92 @@ Every blocks needs to point at the configuration.nix for proper tangling, becaus
     security.pam.services.swaylock = {};
 
     # Boot directly into sway
-    # services.greetd = {
-    #   enable = true;
-    #   settings.default_session.command = "sway";
-    # };
+    services.greetd = {
+      enable = true;
+      settings.default_session.command = "sway";
+    };
+# #+END_SRC
 
-    # ###########
-    # ## GNOME ##
-    ###########
+*** Gnome
+# #+BEGIN_SRC nix :tangle configuration.nix
     # Enable the GNOME Desktop Environment.
-    # services.xserver.displayManager.gdm.enable = true;
-    # services.xserver.desktopManager.gnome.enable = true;
+    services.xserver.displayManager.gdm.enable = true;
+    services.xserver.desktopManager.gnome.enable = true;
 
     # # Unwanted packages that come with Gnome need to be excluded
-    # environment.gnome.excludePackages = (
-    #   with pkgs;
-    #   [
-    #     atomix # puzzle game
-    #     cheese # webcam tool
-    #     epiphany # web browser
-    #     evince # document viewer
-    #     geary
-    #     # email reader
-    #     gedit # text editor
-    #     gnome-characters
-    #     gnome-music
-    #     gnome-photos
-    #     gnome-terminal
-    #     gnome-tour
-    #     hitori # sudoku game
-    #     iagno # go game
-    #     tali # poker game
-    #     totem # video player
-    #   ]
-    # );
+    environment.gnome.excludePackages = (
+      with pkgs;
+      [
+        atomix # puzzle game
+        cheese # webcam tool
+        epiphany # web browser
+        evince # document viewer
+        geary # email reader
+        gedit # text editor
+        gnome-characters
+        gnome-music
+        gnome-photos
+        gnome-terminal
+        gnome-tour
+        hitori # sudoku game
+        iagno # go game
+        tali # poker game
+        totem # video player
+       ]
+    );
 
+    # Enable dconf so we can set GNOME keybindings declaratively
+    programs.dconf.enable =
+       true;
+
+    dconf.settings = {
+      # Workspace switching keybindings
+      "org/gnome/desktop/wm/keybindings" = {
+        switch-to-workspace-1 = [ "<Super>1" ];
+        switch-to-workspace-2 = [ "<Super>2" ];
+        switch-to-workspace-3 = [ "<Super>3" ];
+        switch-to-workspace-4 = [ "<Super>4" ];
+        move-to-workspace-1 = [ "<Super><Shift>1" ];
+        move-to-workspace-2 = [ "<Super><Shift>2" ];
+        move-to-workspace-3 = [ "<Super><Shift>3" ];
+        move-to-workspace-4 = [ "<Super><Shift>4" ];
+      };
+
+      # Disable GNOME's default Super+number app-launcher bindings
+      "org/gnome/shell/keybindings" = {
+        switch-to-application-1 = [ ];
+        switch-to-application-2 = [ ];
+        switch-to-application-3 = [ ];
+        switch-to-application-4 = [ ];
+      };
+    };
+# #+END_SRC
+
+*** Niri
+# #+BEGIN_SRC nix :tangle configuration.nix
+    programs.dconf.enable = true;
+    # services.xserver.displayManager.gdm.enable = true;
+    programs.niri.enable = true;
+# #+END_SRC
+*** Cosmic
+# #+BEGIN_SRC nix :tangle configuration.nix
+    services.displayManager.cosmic-greeter.enable = true;
+    services.desktopManager.cosmic.enable = true;
+    services.desktopManager.cosmic.xwayland.enable = true;
+
+    # Optional: auto-login into your user
+    services.displayManager.autoLogin = {
+      enable = true;
+      user = "bastiaan"; # Change to your actual username
+    };
+# #+END_SRC
+**** Bug
+I found that Emacs autocomplete did not work as intended with autotile in Cosmic.
+It triggered annoying popup that would then tile separately.
+*** Hyprland
+#+BEGIN_SRC nix :tangle configuration.nix
+  programs.hyprland.enable = true; # enable Hyprland
 #+END_SRC
-
 ** Theme
 #+BEGIN_SRC nix :tangle configuration.nix
       ### THEME ###
@@ -225,6 +286,13 @@ Every blocks needs to point at the configuration.nix for proper tangling, becaus
       };
 #+END_SRC
 
+* Environment variables
+#+BEGIN_SRC 
+environment.variables = {
+  DATABASE_URL = "postgresql://user:pass@localhost:5432/dbname";
+  EDITOR = "emacs";
+};
+#+END_SRC
 * Packages
 ** Install packages
 List packages installed in system profile. To search available packages, run: $ nix search wget
@@ -239,16 +307,15 @@ List packages installed in system profile. To search available packages, run: $ 
       waybar
       wofi               # application launcher
       alacritty          # terminal emulator
+      kitty
       foot
-      grim slurp         # screenshot tools
-      wl-clipboard       # clipboard tools
-      mako               # notifications
-      brightnessctl      # brightness control
-      swaybg             # sway backgrounds
-      pipewire           # audio control (or pipewire-pulse if using PipeWire)
-      pulseaudio
       openssh
-      #ghostty
+      ## DE specific for sway ##
+      #grim slurp         # screenshot tools
+      #wl-clipboard       # clipboard tools
+      #mako               # notifications
+      #brightnessctl      # brightness control
+      #swaybg             # sway backgrounds
       ## Software development-related ##
       git
       vim
@@ -265,11 +332,17 @@ List packages installed in system profile. To search available packages, run: $ 
       ripgrep
       luarocks # lua module support (neovim dependecy)
       ## Audio production ##
+      pipewire           # audio control (or pipewire-pulse if using PipeWire)
+      pulseaudio
       reaper
       ## Entertainment ##
       spotify
       #steam
     ];
+
+    # Allow unfree packages
+    nixpkgs.config.allowUnfree = true;
+
 #+END_SRC
 
 ** Enable packages
@@ -281,20 +354,17 @@ Some programs need SUID wrappers, can be configured further or are started in us
       # };
 
 #+BEGIN_SRC nix :tangle configuration.nix
-      # Install firefox.
-      programs.firefox.enable = true;
+    # Enable firefox.
+    programs.firefox.enable = true;
 
-      # Allow unfree packages
-      nixpkgs.config.allowUnfree = true;
+    # Enable Docker
+    virtualisation.docker.enable = true;
+    virtualisation.docker.rootless.enable = true;
 
-      # Enable Docker
-      virtualisation.docker.enable = true;
-      virtualisation.docker.rootless.enable = true;
+    # Emacs support
+    services.emacs.enable = true;
 
-      # Emacs support
-      services.emacs.enable = true;
-
-#+END_SRC
+    #+END_SRC
 
 * Nix release version
 This value determines the NixOS release from which the default settings for stateful data, like file locations and database versions on your system were taken. 

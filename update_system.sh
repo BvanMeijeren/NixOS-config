@@ -1,1 +1,3 @@
-sudo nixos-rebuild switch --flake ~/git/nixos-config/nixos_gnome_w_flakes#bastiaan
+cd /home/bastiaan/Documents/git/
+# Run the following command from the Documents/git directory to update system
+sudo nixos-rebuild switch --flake /home/bastiaan/Documents/git/NixOS-config#nixos

@@ -2,6 +2,7 @@
 
 {
   services.tlp.enable = true;
+  services.power-profiles-daemon.enable = false;
 
   # Optional but recommended for ThinkPads / Dell laptops
   services.tlp.settings = {

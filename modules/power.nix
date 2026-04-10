@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 
 {
+  # this file enables TLP, which is not needed for DEs with inbuilt power management (check configuration.nix)
   services.tlp.enable = true;
   services.power-profiles-daemon.enable = false;
 
